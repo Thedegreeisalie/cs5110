@@ -11,7 +11,7 @@ Modified by Jer Moore for cs5110 program 1
 import random, pygame, sys,math
 from pygame.locals import *
 
-FPS = 5
+FPS = 10
 WINDOWWIDTH = 1000
 WINDOWHEIGHT = 700
 CELLSIZE = 20
@@ -75,10 +75,12 @@ class worm:
             newHead = {'x': self.wormCoords[HEAD]['x'] + 1, 'y': self.wormCoords[HEAD]['y']}
         self.wormCoords.insert(0, newHead)   #have already removed the last segment
 
-        
+
+
 
 def runGame():
     Worm1 = worm()
+    Worm2 = worm()
     apple0 = getRandomLocation()
     apple1 = getRandomLocation()
 
@@ -87,42 +89,74 @@ def runGame():
             if event.type == QUIT:
                 terminate()
             elif event.type == KEYDOWN:
-                if (event.key == K_LEFT or event.key == K_a) and Worm1.direction != RIGHT:
-                    Worm1.direction = LEFT
-                elif (event.key == K_RIGHT or event.key == K_d) and Worm1.direction != LEFT:
-                    Worm1.direction = RIGHT
-                elif (event.key == K_UP or event.key == K_w) and Worm1.direction != DOWN:
-                    Worm1.direction = UP
-                elif (event.key == K_DOWN or event.key == K_s) and Worm1.direction != UP:
-                    Worm1.direction = DOWN
-                elif event.key == K_ESCAPE:
-                    terminate()
+                if(event.key in [K_KP2, K_KP4,  K_KP6, K_KP8]):
+                    if (event.key == K_KP4) and Worm1.direction != RIGHT:
+                        Worm1.direction = LEFT
+                    elif (event.key == K_KP6) and Worm1.direction != LEFT:
+                        Worm1.direction = RIGHT
+                    elif (event.key == K_KP8) and Worm1.direction != DOWN:
+                        Worm1.direction = UP
+                    elif (event.key == K_KP2) and Worm1.direction != UP:
+                        Worm1.direction = DOWN
 
-        # check if the worm has hit itself or the edge
-        if Worm1.wormCoords[HEAD]['x'] == -1 or Worm1.wormCoords[HEAD]['x'] == CELLWIDTH or Worm1.wormCoords[HEAD]['y'] == -1 or Worm1.wormCoords[HEAD]['y'] == CELLHEIGHT:
-            return # game over
-        for wormBody in Worm1.wormCoords[1:]:
-            if wormBody['x'] == Worm1.wormCoords[HEAD]['x'] and wormBody['y'] == Worm1.wormCoords[HEAD]['y']:
-                return # game over
+                    if (event.key == K_KP4) and Worm2.direction != RIGHT:
+                        Worm2.direction = LEFT
+                    elif (event.key == K_KP6) and Worm2.direction != LEFT:
+                        Worm2.direction = RIGHT
+                    elif (event.key == K_KP8) and Worm2.direction != DOWN:
+                        Worm2.direction = UP
+                    elif (event.key == K_KP2) and Worm2.direction != UP:
+                        Worm2.direction = DOWN
+                else:
+                    if (event.key == K_LEFT) and Worm1.direction != RIGHT:
+                        Worm1.direction = LEFT
+                    elif (event.key == K_RIGHT) and Worm1.direction != LEFT:
+                        Worm1.direction = RIGHT
+                    elif (event.key == K_UP) and Worm1.direction != DOWN:
+                        Worm1.direction = UP
+                    elif (event.key == K_DOWN) and Worm1.direction != UP:
+                        Worm1.direction = DOWN
+                    elif event.key == K_a and Worm2.direction != RIGHT:
+                        Worm2.direction = LEFT
+                    elif event.key == K_d and Worm2.direction != LEFT:
+                        Worm2.direction = RIGHT
+                    elif event.key == K_w and Worm2.direction != DOWN:
+                        Worm2.direction = UP
+                    elif event.key == K_s and Worm2.direction != UP:
+                        Worm2.direction = DOWN
+                    elif event.key == K_ESCAPE:
+                        terminate()
 
-        # check if worm has eaten apple0
-        if (Worm1.wormCoords[HEAD]['x'] == apple0['x'] and Worm1.wormCoords[HEAD]['y'] == apple0['y']) :
-            # don't remove worm's tail segment
-            apple0 = getRandomLocation() # set a new apple0 somewhere
-        elif (Worm1.wormCoords[HEAD]['x'] == apple1['x'] and Worm1.wormCoords[HEAD]['y'] == apple1['y']):
-            # don't remove worm's tail segment
-            apple1 = getRandomLocation()  # set a new apple0 somewhere
-        else:
-            del Worm1.wormCoords[-1] # remove worm's tail segment
+        for wrm in [Worm1, Worm2]:
+            # check if the worm has hit itself or the edge
+            if wrm.wormCoords[HEAD]['x'] == -1 or wrm.wormCoords[HEAD]['x'] == CELLWIDTH or wrm.wormCoords[HEAD]['y'] == -1 or wrm.wormCoords[HEAD]['y'] == CELLHEIGHT:
+                return  # game over
+            for wormBody in Worm1.wormCoords[1:]:
+                if wormBody['x'] == wrm.wormCoords[HEAD]['x'] and wormBody['y'] == wrm.wormCoords[HEAD]['y']:
+                    return  # game over
+            for wormBody in Worm2.wormCoords[1:]:
+                if wormBody['x'] == wrm.wormCoords[HEAD]['x'] and wormBody['y'] == wrm.wormCoords[HEAD]['y']:
+                    return  # game over
+            # check if worm has eaten apple0
+            if (wrm.wormCoords[HEAD]['x'] == apple0['x'] and wrm.wormCoords[HEAD]['y'] == apple0['y']):
+                # don't remove wrm.s tail segment
+                apple0 = getRandomLocation()  # set a new apple0 somewhere
+            elif (wrm.wormCoords[HEAD]['x'] == apple1['x'] and wrm.wormCoords[HEAD]['y'] == apple1['y']):
+                # don't remove wrm.s tail segment
+                apple1 = getRandomLocation()  # set a new apple0 somewhere
+            else:
+                del wrm.wormCoords[-1]  # remove wrm.s tail segment
+            wrm.update()
 
-        Worm1.update()
 
         DISPLAYSURF.fill(BGCOLOR)
         drawGrid()
-        drawWorm(Worm1.wormCoords)
+        drawWorm(Worm1.wormCoords, YELLOW, GREEN)
+        drawWorm(Worm2.wormCoords, DARKGREEN, RED)
         drawApple(apple0)
         drawApple(apple1)
-        drawScore(len(Worm1.wormCoords) - 3)
+        drawScore(len(Worm1.wormCoords) - 3, 120)
+        drawScore(len(Worm2.wormCoords) - 3, WINDOWWIDTH/2)
         pygame.display.update()
         FPSCLOCK.tick(FPS)
 
@@ -205,21 +239,21 @@ def showGameOverScreen():
             pygame.event.get() # clear event queue
             return
 
-def drawScore(score):
+def drawScore(score, offset):
     scoreSurf = BASICFONT.render('Score: %s' % (score), True, WHITE)
     scoreRect = scoreSurf.get_rect()
-    scoreRect.topleft = (WINDOWWIDTH - 120, 10)
+    scoreRect.topleft = (WINDOWWIDTH - offset, 10)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
 
 
-def drawWorm(wormCoords):
+def drawWorm(wormCoords, border, fill):
     for coord in wormCoords:
         x = coord['x'] * CELLSIZE
         y = coord['y'] * CELLSIZE
         wormSegmentRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
-        pygame.draw.rect(DISPLAYSURF, DARKGREEN, wormSegmentRect)
+        pygame.draw.rect(DISPLAYSURF, border, wormSegmentRect)
         wormInnerSegmentRect = pygame.Rect(x + 4, y + 4, CELLSIZE - 8, CELLSIZE - 8)
-        pygame.draw.rect(DISPLAYSURF, GREEN, wormInnerSegmentRect)
+        pygame.draw.rect(DISPLAYSURF, fill, wormInnerSegmentRect)
 
 def drawApple(coord):
     x = coord['x'] * CELLSIZE
