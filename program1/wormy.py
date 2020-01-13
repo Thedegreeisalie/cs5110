@@ -5,13 +5,14 @@
 '''
 
 Modified by Jer Moore for cs5110 program 1
+01/13/2020 mm/dd/yyyy
 
 '''
 
 import random, pygame, sys,math
 from pygame.locals import *
 
-FPS = 10
+FPS = 5
 WINDOWWIDTH = 1000
 WINDOWHEIGHT = 700
 CELLSIZE = 20
@@ -60,7 +61,16 @@ class worm:
         self.starty = random.randint(5, CELLHEIGHT - 6)
         self.wormCoords = [{'x': self.startx,     'y': self.starty},
                       {'x': self.startx - 1, 'y': self.starty},
-                      {'x': self.startx - 2, 'y': self.starty}]
+                       {'x': self.startx - 2, 'y': self.starty},
+                       {'x': self.startx - 3, 'y': self.starty},
+                       {'x': self.startx - 4, 'y': self.starty},
+                       {'x': self.startx - 5, 'y': self.starty},
+                       {'x': self.startx - 6, 'y': self.starty},
+                       {'x': self.startx - 7, 'y': self.starty},
+                       {'x': self.startx - 8, 'y': self.starty},
+                       {'x': self.startx - 9, 'y': self.starty},
+                       {'x': self.startx - 10, 'y': self.starty},
+                      {'x': self.startx - 11, 'y': self.starty}]
         self.direction = RIGHT
 
     def update(self):
@@ -75,7 +85,37 @@ class worm:
             newHead = {'x': self.wormCoords[HEAD]['x'] + 1, 'y': self.wormCoords[HEAD]['y']}
         self.wormCoords.insert(0, newHead)   #have already removed the last segment
 
+    def fire(self):
+        if(len(self.wormCoords) > 2):
+            del self.wormCoords[-1]  # remove wrm.s tail segment
+            return True
 
+class projectile:
+    def __init__(self, direction, coord):
+        self.direction = direction
+        self.coords = [coord]
+        if self.direction == UP:
+            newHead = {'x': self.coords[HEAD]['x'], 'y': self.coords[HEAD]['y'] - 1}
+        elif self.direction == DOWN:
+            newHead = {'x': self.coords[HEAD]['x'], 'y': self.coords[HEAD]['y'] + 1}
+        elif self.direction == LEFT:
+            newHead = {'x': self.coords[HEAD]['x'] - 1, 'y': self.coords[HEAD]['y']}
+        elif self.direction == RIGHT:
+            newHead = {'x': self.coords[HEAD]['x'] + 1, 'y': self.coords[HEAD]['y']}
+        self.coords.insert(0, newHead)   #have already removed the last segment
+        del self.coords[-1]  # remove projectile's tail segment
+
+    def update(self):
+        if self.direction == UP:
+            newHead = {'x': self.coords[HEAD]['x'], 'y': self.coords[HEAD]['y'] - 2}
+        elif self.direction == DOWN:
+            newHead = {'x': self.coords[HEAD]['x'], 'y': self.coords[HEAD]['y'] + 2}
+        elif self.direction == LEFT:
+            newHead = {'x': self.coords[HEAD]['x'] - 2, 'y': self.coords[HEAD]['y']}
+        elif self.direction == RIGHT:
+            newHead = {'x': self.coords[HEAD]['x'] + 2, 'y': self.coords[HEAD]['y']}
+        self.coords.insert(0, newHead)   #have already removed the last segment
+        del self.coords[-1]  # remove projectile's tail segment
 
 
 def runGame():
@@ -83,6 +123,8 @@ def runGame():
     Worm2 = worm()
     apple0 = getRandomLocation()
     apple1 = getRandomLocation()
+    projectiles = []
+    stones = []
 
     while True: # main game loop
         for event in pygame.event.get(): # event handling loop
@@ -124,17 +166,42 @@ def runGame():
                         Worm2.direction = UP
                     elif event.key == K_s and Worm2.direction != UP:
                         Worm2.direction = DOWN
+                    elif event.key == K_RETURN:
+                        if(Worm1.fire()):
+                            Bullet = projectile(Worm1.direction, Worm1.wormCoords[HEAD])
+                            projectiles.append(Bullet)
+                    elif event.key == K_SPACE:
+                        if (Worm2.fire()):
+                            Bullet = projectile(Worm2.direction, Worm2.wormCoords[HEAD])
+                            projectiles.append(Bullet)
                     elif event.key == K_ESCAPE:
                         terminate()
+
+        #update for projectiles
+        for jectile in projectiles:
+            # check if the projectile has hit itself or the edge
+            if jectile.coords[HEAD]['x'] == -1 or jectile.coords[HEAD]['x'] == CELLWIDTH or jectile.coords[HEAD]['y'] == -1 or jectile.coords[HEAD]['y'] == CELLHEIGHT:
+                projectiles.remove(jectile)
+            for wrm in [Worm1, Worm2]:
+                for wormCoordinate in wrm.wormCoords:
+                    if jectile.coords[HEAD]['x'] == wormCoordinate['x'] and jectile.coords[HEAD]['y'] == wormCoordinate['y']:
+                        projectiles.remove(jectile)
+                        stones.extend(wrm.wormCoords[wrm.wormCoords.index(wormCoordinate):])
+                        del wrm.wormCoords[wrm.wormCoords.index(wormCoordinate):]
+            jectile.update()
+
 
         for wrm in [Worm1, Worm2]:
             # check if the worm has hit itself or the edge
             if wrm.wormCoords[HEAD]['x'] == -1 or wrm.wormCoords[HEAD]['x'] == CELLWIDTH or wrm.wormCoords[HEAD]['y'] == -1 or wrm.wormCoords[HEAD]['y'] == CELLHEIGHT:
                 return  # game over
-            for wormBody in Worm1.wormCoords[1:]:
-                if wormBody['x'] == wrm.wormCoords[HEAD]['x'] and wormBody['y'] == wrm.wormCoords[HEAD]['y']:
+            for stone in stones:
+                if stone['x'] == wrm.wormCoords[HEAD]['x'] and stone['y'] == wrm.wormCoords[HEAD]['y']:
                     return  # game over
             for wormBody in Worm2.wormCoords[1:]:
+                if wormBody['x'] == wrm.wormCoords[HEAD]['x'] and wormBody['y'] == wrm.wormCoords[HEAD]['y']:
+                    return  # game over
+            for wormBody in Worm1.wormCoords[1:]:
                 if wormBody['x'] == wrm.wormCoords[HEAD]['x'] and wormBody['y'] == wrm.wormCoords[HEAD]['y']:
                     return  # game over
             # check if worm has eaten apple0
@@ -153,8 +220,14 @@ def runGame():
         drawGrid()
         drawWorm(Worm1.wormCoords, YELLOW, GREEN)
         drawWorm(Worm2.wormCoords, DARKGREEN, RED)
+        drawWorm(stones, DARKGRAY, WHITE)
         drawApple(apple0)
         drawApple(apple1)
+
+        #draw projectiles
+        for jectile in projectiles:
+            drawApple(jectile.coords[HEAD])
+
         drawScore(len(Worm1.wormCoords) - 3, 120)
         drawScore(len(Worm2.wormCoords) - 3, WINDOWWIDTH/2)
         pygame.display.update()
